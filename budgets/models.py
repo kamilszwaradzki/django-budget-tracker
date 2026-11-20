@@ -46,3 +46,35 @@ class Account(TimeStampedModel):
 
     def __str__(self):
         return f"{self.name} ({self.currency})"
+
+
+class Category(TimeStampedModel):
+
+    class Type(models.TextChoices):
+        INCOME = "income", "Income"
+        EXPENSE = "expense", "Expense"
+
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="categories",
+    )
+    name = models.CharField(max_length=100)
+    type = models.CharField(
+        max_length=7,
+        choices=Type.choices,
+    )
+
+    class Meta:
+        ordering = ["type", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["owner", "name", "type"],
+                name="budgets_category_owner_name_type_unique",
+            ),
+        ]
+        verbose_name = "category"
+        verbose_name_plural = "categories"
+
+    def __str__(self):
+        return f"{self.name} ({self.get_type_display()})"
