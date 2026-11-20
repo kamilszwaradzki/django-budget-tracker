@@ -1,11 +1,11 @@
 from django.urls import path
 
-from budgets.views import TransactionListView
+from budgets.views import TransactionListCreateView
 
 urlpatterns = [
     path(
         "transactions/",
-        TransactionListView.as_view(),
+        TransactionListCreateView.as_view(),
         name="transaction-list",
     ),
 ]
