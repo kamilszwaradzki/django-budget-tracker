@@ -78,3 +78,37 @@ class Category(TimeStampedModel):
 
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"
+
+
+class Transaction(TimeStampedModel):
+    account = models.ForeignKey(
+        "budgets.Account",
+        on_delete=models.CASCADE,
+        related_name="transactions",
+    )
+    category = models.ForeignKey(
+        "budgets.Category",
+        on_delete=models.RESTRICT,
+        related_name="transactions",
+    )
+    amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+    )
+    date = models.DateField()
+    description = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["-date", "-id"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(amount=0),
+                name="budgets_transaction_amount_nonzero",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.date} - {self.category.name} - {self.amount}"

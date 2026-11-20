@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Account, Category
+from .models import User, Account, Category, Transaction
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
@@ -30,3 +30,29 @@ class CategoryAdmin(admin.ModelAdmin):
     )
     list_filter = ("type",)
     search_fields = ("name", "owner__username")
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = (
+        "date",
+        "account",
+        "category",
+        "amount",
+        "created_at",
+    )
+    list_filter = (
+        "category",
+        "account",
+        "date",
+    )
+    date_hierarchy = "date"
+    search_fields = (
+        "description",
+        "account__name",
+        "category__name",
+    )
+    list_select_related = (
+        "account",
+        "category",
+    )
