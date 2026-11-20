@@ -16,13 +16,16 @@ I have a professional background in PHP development, mainly with Symfony and Lar
 - [x] Account model with timestamp tracking
 - [x] Category model with database-level uniqueness constraints
 - [x] Django Admin configuration for core models
-- [ ] Transaction model and recurring transaction definitions
+- [x] Transaction model
+- [ ] Recurring transaction definitions
 - [ ] Monthly budgets with `ok`, `warning`, and `over` spending statuses
 - [ ] Idempotent generation of recurring transactions
-- [ ] Service layer for business logic
-- [ ] REST API endpoints and serializers
+- [x] Service layer for business logic (transactions)
+- [x] REST API endpoints and serializers (list and create transactions)
+- [x] Per-user data isolation (queryset filtering and protection against ID enumeration)
+- [x] Global validation error handling (Django ValidationError → HTTP 400)
 - [ ] JWT authentication and authorization
-- [ ] Automated tests
+- [x] Automated tests (service and API tests for transactions)
 - [ ] PostgreSQL integration
 - [ ] Docker configuration
 - [ ] CI pipeline
@@ -77,6 +80,12 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+To develop the project and run tests, install `requirements-dev.txt`. It includes the production dependencies as well:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
 Create your local environment configuration:
 
 ```bash
@@ -117,6 +126,24 @@ The Django Admin interface is available at:
 
 `http://127.0.0.1:8000/admin/`
 
+## Running Tests
+
+```bash
+pytest -v
+```
+
+The service tests check:
+
+- income and expense amount rules, including a zero amount
+- ownership of accounts and categories
+
+The API tests check:
+
+- authentication is required
+- the list shows only the current user's transactions
+- a valid transaction is created with a 201 response
+- another user's account is rejected with a 400 response
+
 ## Design Decisions
 
 ### Custom User Model
@@ -134,6 +161,16 @@ Account balances will be calculated from financial transactions. I decided not t
 ### Database-Level Constraints
 
 Category uniqueness is enforced using Django's `UniqueConstraint`. A user cannot create two categories with the same name and type. Categories with the same name but different types are allowed. The database enforces this rule even when application-level validation is bypassed.
+
+### `RESTRICT` on the Category Foreign Key
+
+A category cannot be deleted while transactions still reference it. I used `on_delete=models.RESTRICT` instead of `CASCADE`, because silently removing historical transactions when a category is deleted would corrupt financial data. If a user wants to remove a category, they must first deal with the related transactions.
+
+I chose `RESTRICT` instead of `PROTECT` because `PROTECT` also blocked deleting the whole user. With `RESTRICT`, deleting a user still works, because their transactions are deleted through the account `CASCADE` in the same operation. I checked both cases in the Django shell.
+
+### Two-Phase Validation
+
+Validation happens in two places, on purpose. The serializer checks the shape of the input: required fields, correct types, and whether the referenced account and category exist and belong to the current user. The service layer checks the business rules: an expense must have a negative amount, an income must have a positive amount, and the amount cannot be zero. This split keeps the HTTP layer thin. The same business rules can also be reused outside the API, for example in management commands or background jobs.
 
 ### Environment-Based Configuration
 
