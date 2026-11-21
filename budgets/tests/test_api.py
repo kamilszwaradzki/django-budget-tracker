@@ -1,9 +1,6 @@
 import datetime
 from decimal import Decimal
 
-import pytest
-from django.core.exceptions import ValidationError
-
 from budgets.models import Transaction
 
 URL = "/api/transactions/"
