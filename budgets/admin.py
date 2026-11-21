@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, Account, Category, Transaction
+
+from .models import Account, Category, Transaction, User
+
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):

@@ -21,10 +21,6 @@ class TransactionSerializer(serializers.ModelSerializer):
         fields = super().get_fields()
         request = self.context.get("request")
         if request is not None and request.user.is_authenticated:
-            fields["account"].queryset = Account.objects.filter(
-                owner=request.user
-            )
-            fields["category"].queryset = Category.objects.filter(
-                owner=request.user
-            )
+            fields["account"].queryset = Account.objects.filter(owner=request.user)
+            fields["category"].queryset = Category.objects.filter(owner=request.user)
         return fields

@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 
-from .models import User, Account, Category, Transaction
+from .models import Account, Category, Transaction, User
 
 
 def _validate_transaction_data(
@@ -22,14 +22,10 @@ def _validate_transaction_data(
         errors["category"] = "Category must belong to the current user."
 
     if category.type == Category.Type.INCOME and amount <= 0:
-        errors["amount"] = (
-            "Income transactions must have a positive amount."
-        )
+        errors["amount"] = "Income transactions must have a positive amount."
 
     elif category.type == Category.Type.EXPENSE and amount >= 0:
-        errors["amount"] = (
-            "Expense transactions must have a negative amount."
-        )
+        errors["amount"] = "Expense transactions must have a negative amount."
 
     if errors:
         raise ValidationError(errors)

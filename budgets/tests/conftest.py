@@ -7,16 +7,12 @@ from budgets.models import Account, Category
 
 @pytest.fixture
 def user(db):
-    return get_user_model().objects.create_user(
-        username="alice", password="pass"
-    )
+    return get_user_model().objects.create_user(username="alice", password="pass")
 
 
 @pytest.fixture
 def other_user(db):
-    return get_user_model().objects.create_user(
-        username="bob", password="pass"
-    )
+    return get_user_model().objects.create_user(username="bob", password="pass")
 
 
 @pytest.fixture
@@ -26,16 +22,12 @@ def account(user):
 
 @pytest.fixture
 def expense_category(user):
-    return Category.objects.create(
-        owner=user, name="Food", type=Category.Type.EXPENSE
-    )
+    return Category.objects.create(owner=user, name="Food", type=Category.Type.EXPENSE)
 
 
 @pytest.fixture
 def income_category(user):
-    return Category.objects.create(
-        owner=user, name="Salary", type=Category.Type.INCOME
-    )
+    return Category.objects.create(owner=user, name="Salary", type=Category.Type.INCOME)
 
 
 @pytest.fixture

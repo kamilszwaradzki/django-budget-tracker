@@ -1,9 +1,9 @@
 from decimal import Decimal
 
-from django.contrib.auth.models import AbstractUser
-from django.db import models
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 class User(AbstractUser):
@@ -49,7 +49,6 @@ class Account(TimeStampedModel):
 
 
 class Category(TimeStampedModel):
-
     class Type(models.TextChoices):
         INCOME = "income", "Income"
         EXPENSE = "expense", "Expense"

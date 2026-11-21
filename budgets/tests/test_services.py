@@ -87,9 +87,7 @@ def test_create_transaction_category_of_other_user_raises(
     assert "category" in exc_info.value.message_dict
 
 
-def test_create_transaction_zero_amount_raises(
-    user, account, expense_category
-):
+def test_create_transaction_zero_amount_raises(user, account, expense_category):
     with pytest.raises(ValidationError) as exc_info:
         create_transaction(
             user=user,

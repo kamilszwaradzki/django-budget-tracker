@@ -2,6 +2,7 @@ import datetime
 from decimal import Decimal
 
 import pytest
+from django.core.exceptions import ValidationError
 
 from budgets.models import Transaction
 
@@ -16,16 +17,25 @@ def test_list_transactions_unauthenticated_returns_403(api_client):
 
 
 def test_list_transactions_returns_only_current_user_transactions(
-    api_client, user, account, expense_category, other_user, other_account,
+    api_client,
+    user,
+    account,
+    expense_category,
+    other_user,
+    other_account,
     other_expense_category,
 ):
     Transaction.objects.create(
-        account=account, category=expense_category,
-        amount=Decimal("-1.00"), date=datetime.date(2026, 11, 20),
+        account=account,
+        category=expense_category,
+        amount=Decimal("-1.00"),
+        date=datetime.date(2026, 11, 20),
     )
     Transaction.objects.create(
-        account=other_account, category=other_expense_category,
-        amount=Decimal("-2.00"), date=datetime.date(2026, 11, 20),
+        account=other_account,
+        category=other_expense_category,
+        amount=Decimal("-2.00"),
+        date=datetime.date(2026, 11, 20),
     )
 
     api_client.force_authenticate(user=user)
@@ -77,3 +87,4 @@ def test_create_transaction_with_other_users_account_returns_400(
 
     assert response.status_code == 400
     assert "account" in response.data
+
