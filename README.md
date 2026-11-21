@@ -59,7 +59,7 @@ cd django-budget-tracker
 Create a virtual environment:
 
 ```bash
-python3 -m venv venv
+python3 -m venv .venv
 ```
 
 Activate it:
@@ -144,6 +144,10 @@ The API tests check:
 - a valid transaction is created with a 201 response
 - another user's account is rejected with a 400 response
 
+The model tests check:
+
+- `full_clean()` enforces database constraints, such as the non-zero amount check
+
 ## Design Decisions
 
 ### Custom User Model
@@ -178,4 +182,10 @@ Sensitive settings, including the Django secret key, are loaded from environment
 
 ### Separation of Business Logic
 
-I plan to add a service layer for business logic. It will keep this logic separate from HTTP views and serializers. Transaction processing, budget calculations, and recurring transaction generation will have their own place outside the API layer.
+Business logic lives in a service layer (`budgets/services.py`), not in views or serializers. Creating a transaction goes through `create_transaction()`. The API view only passes validated data to it in `perform_create()`, so the view stays thin and has no business rules of its own.
+
+The service functions use keyword-only arguments, for example `create_transaction(*, user, account, ...)`. Every call has to name its arguments, so it is not possible to accidentally swap `account` and `category` or two amounts.
+
+The service raises Django's `ValidationError`, not the DRF one. This keeps the service independent of the API layer, so the same function can be used later in a management command or a background job. A custom DRF exception handler (`budgets/exceptions.py`) converts Django's `ValidationError` into an HTTP 400 response with field-level errors.
+
+Before saving, the service calls `full_clean()` on the model. This runs model-level validation, including field validators and database constraints such as the non-zero amount check, so invalid data is rejected with a clear error before it reaches the database.
