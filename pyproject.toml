@@ -1,0 +1,18 @@
+[project]
+name = "django-budget-tracker"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "DJ"]   # błędy, importy, bugbear, reguły Django
+ignore = ["E501"]   # długością linii zarządza ruff format
+
+[tool.basedpyright]
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "standard"
+exclude = ["**/migrations", ".venv"]
