@@ -84,4 +84,3 @@ def test_create_transaction_with_other_users_account_returns_400(
 
     assert response.status_code == 400
     assert "account" in response.data
-
