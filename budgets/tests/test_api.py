@@ -98,8 +98,8 @@ def test_list_categories_returns_only_current_user_categories(
     user,
     other_user,
 ):
-    Category.objects.create(owner=user, name="school", type="EXPENSE")
-    Category.objects.create(owner=other_user, name="School2", type="INCOME")
+    Category.objects.create(owner=user, name="school", type=Category.Type.EXPENSE)
+    Category.objects.create(owner=other_user, name="School2", type=Category.Type.INCOME)
 
     api_client.force_authenticate(user=user)
     response = api_client.get(URL_CATEGORY)
@@ -121,7 +121,7 @@ def test_create_category_returns_201_and_sets_current_user_as_owner(api_client, 
     assert response.status_code == 201, response.data
     assert response.data["id"] is not None
     assert response.data["created_at"] is not None
-
+    assert Category.objects.get(pk=response.data["id"]).owner == user
     assert Category.objects.filter(pk=response.data["id"]).exists()
 
 

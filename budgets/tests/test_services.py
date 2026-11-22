@@ -134,7 +134,7 @@ def test_create_category_whitespace_name_raises(user):
     with pytest.raises(ValidationError) as exc_info:
         create_category(
             user=user,
-            name="",
+            name="  ",
             type=Category.Type.EXPENSE,
         )
     assert "name" in exc_info.value.message_dict

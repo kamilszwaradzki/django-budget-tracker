@@ -65,7 +65,7 @@ def create_transaction(
 def create_category(
     *,
     user: User,
-    name,
+    name: str,
     type: Category.Type,
 ) -> Category:
 
