@@ -4,9 +4,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 
-from budgets.models import Transaction
-from budgets.serializers import TransactionSerializer
-from budgets.services import create_transaction
+from budgets.models import Category, Transaction
+from budgets.serializers import CategorySerializer, TransactionSerializer
+from budgets.services import create_category, create_transaction
 
 
 @api_view(["GET"])
@@ -31,3 +31,17 @@ class TransactionListCreateView(ListCreateAPIView):
             **serializer.validated_data,
         )
         serializer.instance = new_transaction
+
+
+class CategoryListCreateView(ListCreateAPIView):
+    serializer_class = CategorySerializer
+
+    def get_queryset(self):
+        return Category.objects.filter(account__owner=self.request.user)
+
+    def perform_create(self, serializer):
+        new_category = create_category(
+            user=self.request.user,
+            **serializer.validated_data,
+        )
+        serializer.instance = new_category

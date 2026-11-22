@@ -24,3 +24,10 @@ class TransactionSerializer(serializers.ModelSerializer):
             fields["account"].queryset = Account.objects.filter(owner=request.user)
             fields["category"].queryset = Category.objects.filter(owner=request.user)
         return fields
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ["owner", "name", "type", "created_at"]
+        read_only_fields = ["owner", "created_at"]

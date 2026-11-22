@@ -4,7 +4,8 @@ from decimal import Decimal
 import pytest
 from django.core.exceptions import ValidationError
 
-from budgets.services import create_transaction
+from budgets.models import Category
+from budgets.services import create_category, create_transaction
 
 DATE = datetime.date(2026, 11, 20)
 
@@ -98,3 +99,53 @@ def test_create_transaction_zero_amount_raises(user, account, expense_category):
         )
 
     assert "amount" in exc_info.value.message_dict
+
+
+def test_create_category_valid_data_creates_category(user):
+    new_category = create_category(
+        user=user,
+        name="School",
+        type=Category.Type.EXPENSE,
+    )
+
+    assert new_category.pk is not None
+    assert new_category.owner == user
+    assert new_category.name == "School"
+    assert new_category.type in Category.Type.EXPENSE
+    assert new_category.created_at is not None
+
+
+def test_create_category_duplicate_name_and_type_raises(user):
+    with pytest.raises(ValidationError) as exc_info:
+        create_category(
+            user=user,
+            name="School",
+            type=Category.Type.EXPENSE,
+        )
+        create_category(
+            user=user,
+            name="School",
+            type=Category.Type.EXPENSE,
+        )
+    assert "__all__" in exc_info.value.message_dict
+
+
+def test_create_category_whitespace_name_raises(user, other_user):
+    with pytest.raises(ValidationError) as exc_info:
+        create_category(
+            user=user,
+            name="",
+            type=Category.Type.EXPENSE,
+        )
+    assert "name" in exc_info.value.message_dict
+
+
+def test_create_category_integrity_error_is_converted_to_validation_error(
+    user, monkeypatch
+):
+    create_category(user=user, name="School2", type=Category.Type.EXPENSE)
+    # symulujemy wyścig: walidacja przepuszcza duplikat, który łapie dopiero baza
+    monkeypatch.setattr(Category, "full_clean", lambda self, *a, **kw: None)
+
+    with pytest.raises(ValidationError):
+        create_category(user=user, name="School2", type=Category.Type.EXPENSE)
