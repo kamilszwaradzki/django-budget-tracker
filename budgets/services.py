@@ -62,27 +62,41 @@ def create_transaction(
     return new_transaction
 
 
-def create_category(
-    *,
-    user: User,
-    name: str,
-    type: Category.Type,
-) -> Category:
-
-    new_category = Category(
-        owner=user,
-        name=name.strip(),
-        type=type,
-    )
-
-    new_category.full_clean()
+def _save_category(category: Category) -> Category:
+    category.full_clean()
 
     try:
         with transaction.atomic():
-            new_category.save()
+            category.save()
     except IntegrityError as exc:
         raise ValidationError(
             {"__all__": ["Category with this name and type already exists."]}
         ) from exc
 
-    return new_category
+    return category
+
+
+def create_category(*, user: User, name: str, type: Category.Type) -> Category:
+
+    category = Category(
+        owner=user,
+        name=name.strip(),
+        type=type,
+    )
+
+    return _save_category(category)
+
+
+def update_category(*, category: Category, name: str, type: Category.Type) -> Category:
+    if type is not None and type != category.type and category.transactions.exists():
+        raise ValidationError(
+            {"type": ["Cannot change category type when transactions exist."]}
+        )
+
+    if name.strip() != "":
+        category.name = name
+
+    if type is not None:
+        category.type = type
+
+    return _save_category(category)

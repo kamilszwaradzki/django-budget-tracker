@@ -5,7 +5,7 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from budgets.models import Category
-from budgets.services import create_category, create_transaction
+from budgets.services import create_category, create_transaction, update_category
 
 DATE = datetime.date(2026, 11, 20)
 
@@ -149,3 +149,90 @@ def test_create_category_integrity_error_is_converted_to_validation_error(
 
     with pytest.raises(ValidationError):
         create_category(user=user, name="School2", type=Category.Type.EXPENSE)
+
+
+def test_update_category_name(expense_category):
+    update_category(
+        category=expense_category, name="New name", type=expense_category.type
+    )
+
+    expense_category.refresh_from_db()
+
+    assert expense_category.name == "New name"
+
+
+def test_update_category_duplicate_name(expense_category, income_category):
+    with pytest.raises(ValidationError) as exc_info:
+        update_category(
+            category=income_category,
+            name=expense_category.name,
+            type=expense_category.type,
+        )
+
+    assert "__all__" in exc_info.value.message_dict
+
+
+def test_update_category_type_with_transactions(user, account, expense_category):
+    create_transaction(
+        user=user,
+        account=account,
+        category=expense_category,
+        amount=Decimal("-1.0"),
+        date=DATE,
+    )
+
+    original_type = expense_category.type
+    new_type = (
+        Category.Type.EXPENSE
+        if original_type == Category.Type.INCOME
+        else Category.Type.INCOME
+    )
+
+    with pytest.raises(ValidationError) as exc:
+        update_category(
+            category=expense_category, name=expense_category.name, type=new_type
+        )
+
+    assert "type" in exc.value.message_dict
+
+    expense_category.refresh_from_db()
+    assert expense_category.type == original_type
+
+
+def test_update_category_type_without_transactions(expense_category):
+    new_type = (
+        Category.Type.EXPENSE
+        if expense_category.type == Category.Type.INCOME
+        else Category.Type.INCOME
+    )
+
+    update_category(
+        category=expense_category, name=expense_category.name, type=new_type
+    )
+
+    expense_category.refresh_from_db()
+
+    assert expense_category.type == new_type
+
+
+def test_update_category_same_type_with_transactions(user, account, expense_category):
+    create_transaction(
+        user=user,
+        account=account,
+        category=expense_category,
+        amount=Decimal("-1.0"),
+        date=DATE,
+    )
+
+    original_type = expense_category.type
+
+    update_category(
+        category=expense_category,
+        name="Updated name",
+        type=original_type,
+    )
+
+    expense_category.refresh_from_db()
+
+    assert expense_category.name == "Updated name"
+    assert expense_category.type == original_type
