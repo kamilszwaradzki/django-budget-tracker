@@ -65,13 +65,13 @@ def create_transaction(
 def create_category(
     *,
     user: User,
-    name: str = "",
+    name,
     type: Category.Type,
 ) -> Category:
 
     new_category = Category(
         owner=user,
-        name=name,
+        name=name.strip(),
         type=type,
     )
 

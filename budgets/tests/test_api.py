@@ -1,9 +1,10 @@
 import datetime
 from decimal import Decimal
 
-from budgets.models import Transaction
+from budgets.models import Category, Transaction
 
 URL = "/api/transactions/"
+URL_CATEGORY = "/api/categories/"
 DATE = "2026-11-20"
 
 
@@ -84,3 +85,56 @@ def test_create_transaction_with_other_users_account_returns_400(
 
     assert response.status_code == 400
     assert "account" in response.data
+
+
+def test_list_categories_unauthenticated_returns_403(api_client):
+    response = api_client.get(URL_CATEGORY)
+
+    assert response.status_code == 403
+
+
+def test_list_categories_returns_only_current_user_categories(
+    api_client,
+    user,
+    other_user,
+):
+    Category.objects.create(owner=user, name="school", type="EXPENSE")
+    Category.objects.create(owner=other_user, name="School2", type="INCOME")
+
+    api_client.force_authenticate(user=user)
+    response = api_client.get(URL_CATEGORY)
+
+    assert response.status_code == 200
+    assert len(response.data) == 1
+    assert response.data[0]["name"] == "school"
+
+
+def test_create_category_returns_201_and_sets_current_user_as_owner(api_client, user):
+    api_client.force_authenticate(user=user)
+
+    response = api_client.post(
+        URL_CATEGORY,
+        data={"name": "School2", "type": "income"},
+        format="json",
+    )
+
+    assert response.status_code == 201, response.data
+    assert response.data["id"] is not None
+    assert response.data["created_at"] is not None
+
+    assert Category.objects.filter(pk=response.data["id"]).exists()
+
+
+def test_create_duplicate_category_returns_400(api_client, user):
+    Category.objects.create(owner=user, name="School", type=Category.Type.INCOME)
+    api_client.force_authenticate(user=user)
+
+    response = api_client.post(
+        URL_CATEGORY,
+        data={"name": "School", "type": "income"},
+        format="json",
+    )
+
+    assert response.status_code == 400, response.data
+    assert "__all__" in response.data
+    assert Category.objects.filter(owner=user, name="School").count() == 1

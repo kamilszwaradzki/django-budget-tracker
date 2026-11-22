@@ -111,17 +111,17 @@ def test_create_category_valid_data_creates_category(user):
     assert new_category.pk is not None
     assert new_category.owner == user
     assert new_category.name == "School"
-    assert new_category.type in Category.Type.EXPENSE
+    assert new_category.type == Category.Type.EXPENSE
     assert new_category.created_at is not None
 
 
 def test_create_category_duplicate_name_and_type_raises(user):
+    create_category(
+        user=user,
+        name="School",
+        type=Category.Type.EXPENSE,
+    )
     with pytest.raises(ValidationError) as exc_info:
-        create_category(
-            user=user,
-            name="School",
-            type=Category.Type.EXPENSE,
-        )
         create_category(
             user=user,
             name="School",
@@ -130,7 +130,7 @@ def test_create_category_duplicate_name_and_type_raises(user):
     assert "__all__" in exc_info.value.message_dict
 
 
-def test_create_category_whitespace_name_raises(user, other_user):
+def test_create_category_whitespace_name_raises(user):
     with pytest.raises(ValidationError) as exc_info:
         create_category(
             user=user,

@@ -15,6 +15,7 @@ def api_root(request, format=None):
     return Response(
         {
             "transactions": reverse("transaction-list", request=request, format=format),
+            "categories": reverse("category-list", request=request, format=format),
         }
     )
 
@@ -37,7 +38,7 @@ class CategoryListCreateView(ListCreateAPIView):
     serializer_class = CategorySerializer
 
     def get_queryset(self):
-        return Category.objects.filter(account__owner=self.request.user)
+        return Category.objects.filter(owner=self.request.user)
 
     def perform_create(self, serializer):
         new_category = create_category(
