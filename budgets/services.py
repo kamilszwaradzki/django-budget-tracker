@@ -87,14 +87,16 @@ def create_category(*, user: User, name: str, type: Category.Type) -> Category:
     return _save_category(category)
 
 
-def update_category(*, category: Category, name: str, type: Category.Type) -> Category:
+def update_category(
+    *, category: Category, name: str | None = None, type: Category.Type | None = None
+) -> Category:
     if type is not None and type != category.type and category.transactions.exists():
         raise ValidationError(
             {"type": ["Cannot change category type when transactions exist."]}
         )
 
-    if name.strip() != "":
-        category.name = name
+    if name is not None:
+        category.name = name.strip()
 
     if type is not None:
         category.type = type

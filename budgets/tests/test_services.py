@@ -181,38 +181,27 @@ def test_update_category_type_with_transactions(user, account, expense_category)
         date=DATE,
     )
 
-    original_type = expense_category.type
-    new_type = (
-        Category.Type.EXPENSE
-        if original_type == Category.Type.INCOME
-        else Category.Type.INCOME
-    )
-
     with pytest.raises(ValidationError) as exc:
         update_category(
-            category=expense_category, name=expense_category.name, type=new_type
+            category=expense_category,
+            name=expense_category.name,
+            type=Category.Type.INCOME,
         )
 
     assert "type" in exc.value.message_dict
 
     expense_category.refresh_from_db()
-    assert expense_category.type == original_type
+    assert expense_category.type == Category.Type.EXPENSE
 
 
 def test_update_category_type_without_transactions(expense_category):
-    new_type = (
-        Category.Type.EXPENSE
-        if expense_category.type == Category.Type.INCOME
-        else Category.Type.INCOME
-    )
-
     update_category(
-        category=expense_category, name=expense_category.name, type=new_type
+        category=expense_category, name=expense_category.name, type=Category.Type.INCOME
     )
 
     expense_category.refresh_from_db()
 
-    assert expense_category.type == new_type
+    assert expense_category.type == Category.Type.INCOME
 
 
 def test_update_category_same_type_with_transactions(user, account, expense_category):
@@ -224,15 +213,13 @@ def test_update_category_same_type_with_transactions(user, account, expense_cate
         date=DATE,
     )
 
-    original_type = expense_category.type
-
     update_category(
         category=expense_category,
         name="Updated name",
-        type=original_type,
+        type=Category.Type.EXPENSE,
     )
 
     expense_category.refresh_from_db()
 
     assert expense_category.name == "Updated name"
-    assert expense_category.type == original_type
+    assert expense_category.type == Category.Type.EXPENSE
