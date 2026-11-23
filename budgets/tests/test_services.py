@@ -4,8 +4,14 @@ from decimal import Decimal
 import pytest
 from django.core.exceptions import ValidationError
 
-from budgets.models import Category
-from budgets.services import create_category, create_transaction, update_category
+from budgets.errors import CategoryInUseError
+from budgets.models import Category, Transaction
+from budgets.services import (
+    create_category,
+    create_transaction,
+    delete_category,
+    update_category,
+)
 
 DATE = datetime.date(2026, 11, 20)
 
@@ -223,3 +229,44 @@ def test_update_category_same_type_with_transactions(user, account, expense_cate
 
     assert expense_category.name == "Updated name"
     assert expense_category.type == Category.Type.EXPENSE
+
+
+def test_delete_category_without_transactions_deletes_category(expense_category):
+    category_id = expense_category.pk
+
+    delete_category(category=expense_category)
+
+    assert not Category.objects.filter(pk=category_id).exists()
+
+
+def test_delete_category_with_transactions_raises_category_in_use(
+    user, account, expense_category
+):
+    create_transaction(
+        user=user,
+        account=account,
+        category=expense_category,
+        amount=Decimal("-1.00"),
+        date=DATE,
+    )
+
+    with pytest.raises(CategoryInUseError):
+        delete_category(category=expense_category)
+
+
+def test_delete_category_with_transactions_keeps_category_and_transactions(
+    user, account, expense_category
+):
+    create_transaction(
+        user=user,
+        account=account,
+        category=expense_category,
+        amount=Decimal("-1.00"),
+        date=DATE,
+    )
+
+    with pytest.raises(CategoryInUseError):
+        delete_category(category=expense_category)
+
+    assert Category.objects.filter(pk=expense_category.pk).exists()
+    assert Transaction.objects.filter(category=expense_category).count() == 1

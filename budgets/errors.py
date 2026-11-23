@@ -1,0 +1,2 @@
+class CategoryInUseError(Exception):
+    pass
