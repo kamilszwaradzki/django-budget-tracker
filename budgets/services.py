@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import RestrictedError
 
 from .errors import CategoryInUseError
 from .models import Account, Category, Transaction, User
@@ -105,9 +106,10 @@ def update_category(
     return _save_category(category)
 
 
-def delete_category(*, category):
+def delete_category(*, category: Category) -> None:
     try:
-        with transaction.atomic():
-            category.delete()
-    except IntegrityError as exc:
-        raise CategoryInUseError({"__all__": ["This category is in use."]}) from exc
+        category.delete()
+    except RestrictedError as exc:
+        raise CategoryInUseError(
+            "Cannot delete a category that has transactions."
+        ) from exc

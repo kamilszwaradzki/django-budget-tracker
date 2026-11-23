@@ -159,7 +159,7 @@ def test_create_category_integrity_error_is_converted_to_validation_error(
 
 def test_update_category_name(expense_category):
     update_category(
-        category=expense_category, name="New name", type=expense_category.type
+        category=expense_category, name="New name"
     )
 
     expense_category.refresh_from_db()
