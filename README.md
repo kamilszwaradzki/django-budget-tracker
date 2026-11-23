@@ -4,9 +4,9 @@ A REST API for managing personal finances, including accounts, income and expens
 
 ## Project Status
 
-**Work in Progress**
+**Active development.** I have a professional background in PHP (Symfony, Laravel). This is my first Django project: I'm learning the framework by building a finance app with real business rules. The design decisions below explain the trade-offs.
 
-I have a professional background in PHP development, mainly with Symfony and Laravel. This is my first project built with Django. I am using it to learn the framework by building a personal finance application with real business rules.
+**Highlights:** service layer with keyword-only arguments · `Decimal` money · per-user data isolation · DB-level constraints · two-phase validation · pytest suite
 
 ## Features & Roadmap
 
@@ -65,13 +65,13 @@ python3 -m venv .venv
 Activate it:
 
 ```bash
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 If you are using Fish shell:
 
 ```fish
-source venv/bin/activate.fish
+source .venv/bin/activate.fish
 ```
 
 Install dependencies:
