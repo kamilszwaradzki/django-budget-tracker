@@ -1,6 +1,11 @@
 from django.urls import path
 
-from budgets.views import CategoryListCreateView, TransactionListCreateView, api_root
+from budgets.views import (
+    CategoryDetailView,
+    CategoryListCreateView,
+    TransactionListCreateView,
+    api_root,
+)
 
 urlpatterns = [
     path("", api_root, name="api-root"),
@@ -14,4 +19,5 @@ urlpatterns = [
         CategoryListCreateView.as_view(),
         name="category-list",
     ),
+    path("categories/<int:pk>/", CategoryDetailView.as_view(), name="category-detail"),
 ]
