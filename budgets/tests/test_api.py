@@ -136,5 +136,5 @@ def test_create_duplicate_category_returns_400(api_client, user):
     )
 
     assert response.status_code == 400, response.data
-    assert "__all__" in response.data
+    assert "non_field_errors" in response.data
     assert Category.objects.filter(owner=user, name="School").count() == 1
